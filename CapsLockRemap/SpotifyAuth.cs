@@ -4,9 +4,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace CapsLockRemap
 {
@@ -26,7 +26,6 @@ namespace CapsLockRemap
 
         static public async Task Init()
         {
-
             config = ConfigManager.Load();
             clientId = config.ClientId;
             clientSecret = config.ClientSecret;
@@ -53,6 +52,7 @@ namespace CapsLockRemap
                 FileName = authUrl,
                 UseShellExecute = true
             });
+
 
             var http = new HttpListener();
             http.Prefixes.Add("http://localhost:5555/callback/");
@@ -95,24 +95,27 @@ namespace CapsLockRemap
 
                 request.Content = new FormUrlEncodedContent(new[]
                 {
-                new KeyValuePair<string, string>("grant_type", "authorization_code"),
-                new KeyValuePair<string, string>("code", code),
-                new KeyValuePair<string, string>("redirect_uri", redirectUri),
-            });
+                    new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                    new KeyValuePair<string, string>("code", code),
+                    new KeyValuePair<string, string>("redirect_uri", redirectUri),
+                });
 
                 var response = await client.SendAsync(request);
                 string json = await response.Content.ReadAsStringAsync();
-                var tokenData = JObject.Parse(json);
 
-                accessToken = tokenData["access_token"].ToString();
-                refreshToken = tokenData["refresh_token"].ToString();
-                expiresIn = tokenData["expires_in"].ToObject<int>();
+                var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                accessToken = root.GetProperty("access_token").GetString();
+                refreshToken = root.GetProperty("refresh_token").GetString();
+                expiresIn = root.GetProperty("expires_in").GetInt32();
 
                 Console.WriteLine("Access token: " + accessToken);
                 Console.WriteLine("Refresh token: " + refreshToken);
                 Console.WriteLine("Expires in: " + expiresIn + " seconds");
             }
         }
+
 
         static void ScheduleRefresh()
         {
@@ -137,10 +140,12 @@ namespace CapsLockRemap
 
                 var response = await client.SendAsync(request);
                 string json = await response.Content.ReadAsStringAsync();
-                var tokenData = JObject.Parse(json);
 
-                accessToken = tokenData["access_token"].ToString();
-                expiresIn = tokenData["expires_in"].ToObject<int>();
+                var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                accessToken = root.GetProperty("access_token").GetString();
+                expiresIn = root.GetProperty("expires_in").GetInt32();
 
                 Console.WriteLine("Refreshed access token: " + accessToken);
                 Console.WriteLine("New expiry: " + expiresIn + " seconds");
@@ -149,32 +154,6 @@ namespace CapsLockRemap
             }
         }
 
-        static async Task GetCurrentPlayback()
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var response = await client.GetAsync("https://api.spotify.com/v1/me/player/currently-playing");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("Error: " + response.StatusCode);
-                    return;
-                }
-
-                string json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json)) return;
-
-                var obj = JObject.Parse(json);
-                var track = obj["item"];
-                if (track != null)
-                {
-                    string song = track["name"].ToString();
-                    string artist = track["artists"][0]["name"].ToString();
-                    Console.WriteLine($"Now playing: {song} - {artist}");
-                }
-            }
-        }
 
         public static async Task LikeCurrentSong()
         {
@@ -200,17 +179,18 @@ namespace CapsLockRemap
                     return;
                 }
 
-                var obj = JObject.Parse(json);
-                var track = obj["item"];
-                if (track == null)
+                var obj = JsonDocument.Parse(json).RootElement;
+                var track = obj.GetProperty("item");
+
+                if (!track.TryGetProperty("id", out JsonElement trackIdElement))
                 {
                     Console.WriteLine("❌ No track info found.");
                     return;
                 }
 
-                string trackId = track["id"].ToString();
-                string songName = track["name"].ToString();
-                string artist = track["artists"][0]["name"].ToString();
+                string trackId = track.GetProperty("id").GetString();
+                string songName = track.GetProperty("name").GetString();
+                string artist = track.GetProperty("artists")[0].GetProperty("name").GetString();
 
                 Console.WriteLine($"🎵 Currently playing: {songName} - {artist}");
 

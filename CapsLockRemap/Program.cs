@@ -11,15 +11,14 @@ namespace CapsLockRemap
 {
     internal class Program
     {
-
         private static NotifyIcon _trayIcon;
 
-        private static string AppName = "CAPSpotify";
         private static string TargetDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             ".pargivaht", "CAPSpotify");
 
-        private static string TargetExe => Path.Combine(TargetDir, $"{AppName}.exe");
+        private static string TargetExe => Path.Combine(TargetDir, "CAPSpotify.exe");
+
 
         // Windows API constants
         const int WM_APPCOMMAND = 0x319;
@@ -46,6 +45,9 @@ namespace CapsLockRemap
 
         public static void Main()
         {
+            string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Directory.SetCurrentDirectory(exeDir);
+
 
             if (!File.Exists(configPath))
                 OpenConfig();
@@ -54,6 +56,7 @@ namespace CapsLockRemap
             _hookID = SetHook(_proc);
             Application.Run();
             UnhookWindowsHookEx(_hookID);
+
         }
 
         public static void Restart()
@@ -95,7 +98,7 @@ namespace CapsLockRemap
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey(
                 @"Software\Microsoft\Windows\CurrentVersion\Run", true))
             {
-                key.SetValue(AppName, exePath);
+                key.SetValue("CAPSpotify", exePath);
             }
         }
 

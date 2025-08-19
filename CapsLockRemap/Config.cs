@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CapsLockRemap;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -18,6 +19,10 @@ public class ConfigManager
 
     public static Config Load()
     {
+
+        Console.WriteLine(ConfigPath);
+
+
         if (!File.Exists(ConfigPath))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath));
@@ -27,7 +32,23 @@ public class ConfigManager
         }
 
         string json = File.ReadAllText(ConfigPath);
-        return System.Text.Json.JsonSerializer.Deserialize<Config>(json) ?? new Config();
+
+        Console.WriteLine(json);
+
+
+        try
+        {
+            return JsonSerializer.Deserialize<Config>(json) ?? new Config();
+        }
+        catch (Exception ex)
+        {
+            // log the error (to file, since console might be invisible)
+            string logPath = Path.Combine(Path.GetDirectoryName(ConfigPath), "error.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Failed to load config: {ex}{Environment.NewLine}");
+            Console.WriteLine(ex.Message);
+            return new Config();      
+        }
+        
     }
 
     public static void Save(Config config)
