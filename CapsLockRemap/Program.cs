@@ -2,14 +2,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace CapsLockRemap
@@ -29,20 +24,16 @@ namespace CapsLockRemap
         // Windows API constants
         const int WM_APPCOMMAND = 0x319;
         const int APPCOMMAND_MEDIA_PLAY_PAUSE = 14;
-        const int VK_MEDIA_PLAY_PAUSE = 0xB3;
         const int APPCOMMAND_MEDIA_NEXTTRACK = 11;
         const int APPCOMMAND_MEDIA_PREVIOUSTRACK = 12;
 
 
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
-        private const int WM_KEYUP = 0x0101;
         const int WM_SYSKEYDOWN = 0x0104; // Alt + key triggers this
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
 
-        const int SW_HIDE = 0;
-        const int SW_SHOW = 5;
 
         static string configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".pargivaht", "CAPSpotify", "config.json");
 
@@ -71,27 +62,6 @@ namespace CapsLockRemap
             Process.Start(exePath);
             Application.Exit();
         }
-
-        private void AddStartup()
-        {
-            try
-            {
-                string appName = "CAPSpotify";
-                string exePath = Assembly.GetExecutingAssembly().Location;
-
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
-                {
-                    key.SetValue(appName, exePath);
-                }
-
-                Console.WriteLine("App added to startup successfully.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Failed to add to startup: " + ex.Message);
-            }
-        }
-
 
         public static void InstallAndRestartToAppData()
         {
