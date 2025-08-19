@@ -2,7 +2,7 @@
 
 CAPSpotify remaps the Caps Lock key to pause/resume Spotify playback (only on the desktop app, windows only).
 You can find the config and other options by right clicking the tray app. Its reccomended to add it to startup, so you don't need to start it every time you start your pc.
-The config file (and the exe if you added to startup) can be found at %appdata% \.pargivaht\CAPSpotify\
+The config file (and the exe if you added to startup) can be found at %appdata%\ .pargivaht\CAPSpotify\
 
 ## Features
 
