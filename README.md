@@ -10,6 +10,7 @@ The config file (and the exe if you added to startup) can be found at %appdata%\
 - Caps Lock + Shift -> next
 - Caps Lock + Ctrl -> previous
 - Caps Lock + Alt -> like current song (only with API)
+- Caps Lock + Ctrl + Shift -> Toggle Caps Lock
 
 All that is free and does not need Spotify premium.
 The only feature that needs a bit of work to set up is the liking current song, if you dont feel like tinkering for 2 min you can just disable it from the config.
