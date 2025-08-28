@@ -153,7 +153,10 @@ namespace CapsLockRemap
                 if (vkCode == (int)Keys.CapsLock)
                 {
                     if (ctrl && shift)
+                    {
                         spotifyControl(4);
+                        return (IntPtr)0;
+                    }
                     else if (ctrl)
                         spotifyControl(3);
                     else if (shift)
